@@ -1,4 +1,4 @@
-# lvgl_simulator_window_vscode-v9.1
+# lvgl_simulator_window_vscode-v9.5.0
 在 Window 上运行 LVGL 模拟器
 
 # 运行
