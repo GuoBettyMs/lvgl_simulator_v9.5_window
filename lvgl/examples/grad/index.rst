@@ -1,25 +1,26 @@
+.. example_heading: Gradients
 
 
-Play with a simple horizontal gradient
---------------------------------------
+Simple Horizontal Gradient
+--------------------------
 
-.. lv_example:: get_started/lv_example_grad_1
+.. lv_example:: grad/lv_example_grad_1
   :language: c
 
-Play with a linear (skew) gradient
-----------------------------------
+Linear (Skew) Gradient
+----------------------
 
-.. lv_example:: get_started/lv_example_grad_2
+.. lv_example:: grad/lv_example_grad_2
   :language: c
 
-Play with a radial gradient
----------------------------
+Radial Gradient
+---------------
 
-.. lv_example:: get_started/lv_example_grad_3
+.. lv_example:: grad/lv_example_grad_3
   :language: c
 
-Play with a conical gradient
-----------------------------
+Conical Gradient
+----------------
 
-.. lv_example:: get_started/lv_example_grad_4
+.. lv_example:: grad/lv_example_grad_4
   :language: c

@@ -86,6 +86,8 @@ set(LV_USE_DRAW_SDL ${LV_USE_DRAW_SDL} CACHE BOOL "" FORCE)
 add_subdirectory(lvgl)
 target_include_directories(lvgl PUBLIC ${PROJECT_SOURCE_DIR} ${SDL2_INCLUDE_DIRS})
 
+file(GLOB SUB_SRCS "${PROJECT_SOURCE_DIR}/main/src/ui/*.c")
+
 # Create the main executable, depending on the FreeRTOS option
 if(USE_FREERTOS)
     add_executable(main
@@ -95,6 +97,7 @@ if(USE_FREERTOS)
         ${PROJECT_SOURCE_DIR}/main/src/mouse_cursor_icon.c
         ${PROJECT_SOURCE_DIR}/main/src/FreeRTOS_Posix_Port.c
         ${FREERTOS_SOURCES}  # Add only if USE_FREERTOS is enabled
+        ${SUB_SRCS} 
     )
     # Link FreeRTOS libraries
     # target_link_libraries(main freertos_config FreeRTOS)
@@ -107,14 +110,26 @@ else()
     )
 endif()
 
-# 链接其他库（LVGL、线程等）
+add_subdirectory(main/src/ui)
+# 然后链接子 UI 库
 target_link_libraries(main PRIVATE 
     lvgl 
     lvgl::examples 
     lvgl::demos 
     lvgl::thorvg 
     ${CMAKE_THREAD_LIBS_INIT}
+    lib-ui   # 链接 UI 库
 )
+target_include_directories(main PRIVATE ${PROJECT_SOURCE_DIR}/main/src)
+
+# # 链接其他库（LVGL、线程等）
+# target_link_libraries(main PRIVATE 
+#     lvgl 
+#     lvgl::examples 
+#     lvgl::demos 
+#     lvgl::thorvg 
+#     ${CMAKE_THREAD_LIBS_INIT}
+# )
 
 
 # Only link freertos_config if the FreeRTOS directory exists

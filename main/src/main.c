@@ -24,6 +24,8 @@
 #endif
 
 #include "c.h"
+#include "ui/ui.h" 
+#include <windows.h>
 
 /*********************
  *      DEFINES
@@ -72,6 +74,7 @@ extern void freertos_main(void);
  *   GLOBAL FUNCTIONS
  **********************/
 
+
 int main(int argc, char **argv)
 {
   (void)argc; /*Unused*/
@@ -86,8 +89,18 @@ int main(int argc, char **argv)
 
   #if LV_USE_OS == LV_OS_NONE
 
-  lv_demo_widgets();
+  //应用程序默认被编译成了 Windows GUI 应用程序（没有控制台窗口），且 GUI 程序启动时不会自动分配控制台
+  //而 printf 默认输出到控制台（stdout），所以 printf 的输出要额外设置窗口来显示
+  AllocConsole();
+  freopen("CONOUT$", "w", stdout);
+  printf("Hello from console!\n");
+
+  // lv_demo_widgets();
   // c();
+ui_init("");   // 或 ui_init("./");
+
+
+
 
   while(1) {
     /* Periodically call the lv_task handler.

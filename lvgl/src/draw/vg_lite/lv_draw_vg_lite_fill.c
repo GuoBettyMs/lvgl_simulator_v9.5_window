@@ -7,7 +7,6 @@
  *      INCLUDES
  *********************/
 
-#include "../../misc/lv_area_private.h"
 #include "lv_draw_vg_lite.h"
 
 #if LV_USE_DRAW_VG_LITE
@@ -16,6 +15,7 @@
 #include "lv_vg_lite_path.h"
 #include "lv_vg_lite_utils.h"
 #include "lv_vg_lite_grad.h"
+#include "../../misc/lv_area_private.h"
 
 /*********************
  *      DEFINES
@@ -58,6 +58,14 @@ void lv_draw_vg_lite_fill(lv_draw_task_t * t, const lv_draw_fill_dsc_t * dsc, co
 
     vg_lite_matrix_t matrix = u->global_matrix;
 
+    /* Improve GPU rendering efficiency using simpler fill modes */
+    if(dsc->radius == 0 && dsc->opa >= LV_OPA_MAX && dsc->grad.dir == LV_GRAD_DIR_NONE &&
+       lv_matrix_is_identity((lv_matrix_t *)&matrix)) {
+        lv_vg_lite_clear(&u->target_buffer, &clip_area, lv_vg_lite_color(dsc->color, LV_OPA_COVER, false));
+        LV_PROFILER_DRAW_END;
+        return;
+    }
+
     lv_vg_lite_path_t * path = lv_vg_lite_path_get(u, VG_LITE_FP32);
     lv_vg_lite_path_set_quality(path, dsc->radius == 0 ? VG_LITE_LOW : VG_LITE_HIGH);
     lv_vg_lite_path_set_bounding_box_area(path, &clip_area);
@@ -70,7 +78,7 @@ void lv_draw_vg_lite_fill(lv_draw_task_t * t, const lv_draw_fill_dsc_t * dsc, co
     if(dsc->grad.dir != LV_GRAD_DIR_NONE) {
 #if LV_USE_VECTOR_GRAPHIC
         lv_vg_lite_draw_grad_helper(
-            u,
+            u->grad_ctx,
             &u->target_buffer,
             lv_vg_lite_path_get_path(path),
             coords,

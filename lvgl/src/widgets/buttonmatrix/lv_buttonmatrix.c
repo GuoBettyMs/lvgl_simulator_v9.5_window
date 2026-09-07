@@ -1,5 +1,5 @@
 /**
- * @file lv_btnmatrix.c
+ * @file lv_buttonmatrix.c
  *
  */
 
@@ -17,7 +17,7 @@
 #include "../../core/lv_group.h"
 #include "../../draw/lv_draw.h"
 #include "../../core/lv_refr.h"
-#include "../../misc/lv_text.h"
+#include "../../misc/lv_text_private.h"
 #include "../../misc/lv_text_ap.h"
 #include "../../stdlib/lv_string.h"
 
@@ -66,6 +66,21 @@ static void free_map(lv_buttonmatrix_t * btnm);
 static const char * const lv_buttonmatrix_def_map[] = {"Btn1", "Btn2", "Btn3", "\n", "Btn4", "Btn5", ""};
 #endif
 
+#if LV_USE_OBJ_PROPERTY
+static const lv_property_ops_t lv_buttonmatrix_properties[] = {
+    {
+        .id = LV_PROPERTY_BUTTONMATRIX_SELECTED_BUTTON,
+        .setter = lv_buttonmatrix_set_selected_button,
+        .getter = lv_buttonmatrix_get_selected_button,
+    },
+    {
+        .id = LV_PROPERTY_BUTTONMATRIX_ONE_CHECKED,
+        .setter = lv_buttonmatrix_set_one_checked,
+        .getter = lv_buttonmatrix_get_one_checked,
+    },
+};
+#endif
+
 const lv_obj_class_t lv_buttonmatrix_class = {
     .constructor_cb = lv_buttonmatrix_constructor,
     .destructor_cb = lv_buttonmatrix_destructor,
@@ -76,7 +91,8 @@ const lv_obj_class_t lv_buttonmatrix_class = {
     .editable = LV_OBJ_CLASS_EDITABLE_TRUE,
     .group_def = LV_OBJ_CLASS_GROUP_DEF_TRUE,
     .base_class = &lv_obj_class,
-    .name = "btnmatrix",
+    .name = "lv_buttonmatrix",
+    LV_PROPERTY_CLASS_FIELDS(buttonmatrix, BUTTONMATRIX)
 };
 
 /**********************
@@ -299,6 +315,7 @@ static void lv_buttonmatrix_constructor(const lv_obj_class_t * class_p, lv_obj_t
     btnm->ctrl_bits      = NULL;
     btnm->map_p          = NULL;
     btnm->one_check      = 0;
+    btnm->auto_free_map  = 0;
 
 #if LV_WIDGETS_HAS_DEFAULT_VALUE
     lv_buttonmatrix_set_map(obj, lv_buttonmatrix_def_map);
@@ -726,9 +743,14 @@ static void draw_main(lv_event_t * e)
             txt = txt_ap;
         }
 #endif
+        lv_text_attributes_t attributes = {0};
+        attributes.letter_space = letter_space;
+        attributes.line_space = line_space;
+        attributes.text_flags = draw_label_dsc_act.flag;
+        attributes.max_width = lv_area_get_width(&area_obj);
+
         lv_point_t txt_size;
-        lv_text_get_size(&txt_size, txt, font, letter_space,
-                         line_space, lv_area_get_width(&area_obj), draw_label_dsc_act.flag);
+        lv_text_get_size_attributes(&txt_size, txt, font, &attributes);
 
         btn_area.x1 += (lv_area_get_width(&btn_area) - txt_size.x) / 2;
         btn_area.y1 += (lv_area_get_height(&btn_area) - txt_size.y) / 2;

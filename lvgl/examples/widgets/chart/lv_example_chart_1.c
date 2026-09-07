@@ -21,12 +21,17 @@ void lv_example_chart_1(void)
     uint32_t i;
     for(i = 0; i < 10; i++) {
         /*Set the next points on 'ser1'*/
-        lv_chart_set_next_value(chart, ser1, lv_rand(10, 50));
+        lv_chart_set_next_value(chart, ser1, (int32_t)lv_rand(10, 50));
 
         /*Directly set points on 'ser2'*/
-        ser2_y_points[i] = lv_rand(50, 90);
+        ser2_y_points[i] = (int32_t)lv_rand(50, 90);
     }
 
+    lv_obj_set_style_drop_shadow_opa(chart, 255, LV_PART_ITEMS);
+    lv_obj_set_style_drop_shadow_offset_x(chart, 0, LV_PART_ITEMS);
+    lv_obj_set_style_drop_shadow_radius(chart, 20, LV_PART_ITEMS);
+    /* Drop shadow color follows each series color automatically,
+     * so no manual override is needed. */
     lv_chart_refresh(chart); /*Required after direct set*/
 }
 

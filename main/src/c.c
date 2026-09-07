@@ -199,7 +199,7 @@ void c(void)
     lv_obj_set_style_bg_color(lv_scr_act(), CONTENT_BG, LV_PART_MAIN);
 
 
-
+    printf("Initializing custom C code using LVGL v%d.%d.%d\n", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
 
     lv_obj_t * typeCs_bg = lv_obj_create(lv_scr_act());
     lv_obj_set_size(typeCs_bg, lv_pct(100), lv_pct(27));
