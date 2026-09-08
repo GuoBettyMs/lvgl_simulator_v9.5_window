@@ -13,14 +13,16 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "lvgl/lvgl.h"
-// #include "lvgl.h"
 #include "lvgl/examples/lv_examples.h"
 #include "lvgl/demos/lv_demos.h"
-// #include "glob.h"
+
 #ifdef _WIN32
-// Windows 下 glob.h 不可用，暂时忽略文件通配功能（模拟器通常不需要）
+#include <windows.h>
+static void msleep(uint32_t ms) { Sleep(ms); }
 #else
 #include <glob.h>
+#include <unistd.h>
+static void msleep(uint32_t ms) { usleep(ms * 1000); }
 #endif
 
 #include "c.h"
@@ -30,6 +32,8 @@
 /*********************
  *      DEFINES
  *********************/
+static void show_simulator(int argc, char **argv);
+static void show_editor_xml(void);
 
 /**********************
  *      TYPEDEFS
@@ -77,6 +81,28 @@ extern void freertos_main(void);
 
 int main(int argc, char **argv)
 {
+
+  //应用程序默认被编译成了 Windows GUI 应用程序（没有控制台窗口），且 GUI 程序启动时不会自动分配控制台
+  //而 printf 默认输出到控制台（stdout），所以 printf 的输出要额外设置窗口来显示
+  // AllocConsole();
+  // freopen("CONOUT$", "w", stdout);
+  // printf("Hello from console!\n");
+
+  // show_simulator(argc, argv);
+  show_editor_xml();
+
+
+  return 0;
+}
+
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+/**
+* 显示 LVGL 模拟器 demo
+*/
+static void show_simulator(int argc, char **argv)
+{
   (void)argc; /*Unused*/
   (void)argv; /*Unused*/
 
@@ -89,18 +115,8 @@ int main(int argc, char **argv)
 
   #if LV_USE_OS == LV_OS_NONE
 
-  //应用程序默认被编译成了 Windows GUI 应用程序（没有控制台窗口），且 GUI 程序启动时不会自动分配控制台
-  //而 printf 默认输出到控制台（stdout），所以 printf 的输出要额外设置窗口来显示
-  AllocConsole();
-  freopen("CONOUT$", "w", stdout);
-  printf("Hello from console!\n");
-
-  // lv_demo_widgets();
+  lv_demo_widgets();
   // c();
-ui_init("");   // 或 ui_init("./");
-
-
-
 
   while(1) {
     /* Periodically call the lv_task handler.
@@ -115,13 +131,65 @@ ui_init("");   // 或 ui_init("./");
   freertos_main();  
 
   #endif
-
-  return 0;
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+
+/**
+* 显示 LVGL Editor UI
+* 文件路径为：main/src/ui/ 
+*/
+static void show_editor_xml(void)
+{
+  /*Initialize LVGL*/
+  lv_init();
+
+  /* Build everything while holding the LVGL mutex. lv_lock()/lv_unlock() are
+  * no-ops when no OS is used (the SDL backend) and guard against the driver's
+  * window thread on the Windows backend. */
+  lv_lock();
+
+  /*Initialize the HAL (display, input devices, tick) for LVGL*/
+  // hal_init(320, 480);
+  hal_init(240, 240);
+
+  /* Initialize the UI exported from the LVGL Editor.
+    * "A:ui" tells LVGL where the file-based assets (images, fonts) live,
+    * relative to the working directory. */
+  ui_init("A:ui");
+  // ui_init("");   // 或 ui_init("./");
+
+  /* 
+    * 加载设计屏幕（将 main\src\ui\ui_gen.c 中的 screen_components 设为活动屏幕）
+    * Load one of your screens. Replace `some_screen` with a screen name from
+    * your Editor project, e.g.:
+    *     lv_screen_load(home_create());
+    */
+  if (screen_components) {
+      lv_scr_load(screen_components);
+  } else {
+      printf("Warning: screen_components is NULL!\n");
+          /*No UI exporeted yet: show a welcome message so the project runs out of the box.*/
+      lv_obj_t * label = lv_label_create(lv_screen_active());
+      lv_label_set_text(label,
+                        "LVGL is running!\n"
+                        "Export your UI from the LVGL Editor\n"
+                        "into the ui/ folder to see it here.");
+      lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_center(label);
+  }
+
+  lv_unlock();
+
+  /*Handle LVGL tasks until the window is closed*/
+  while(1) {
+      uint32_t idle_ms = lv_timer_handler();
+      if(idle_ms == LV_NO_TIMER_READY) {
+          idle_ms = LV_DEF_REFR_PERIOD;
+      }
+      msleep(idle_ms);
+  }
+
+}
 
 /**
  * Initialize the Hardware Abstraction Layer (HAL) for the LVGL graphics
